@@ -1,0 +1,77 @@
+# INET-QUIC Integration for LEO Satellite Simulation
+
+## Overview
+
+This work extends the INET framework to support QUIC transport protocol behavior in a LEO satellite simulation environment using OMNeT++ and FloRaSat.
+
+The goal is to enable end-to-end QUIC communication across multi-hop satellite links under dynamic network conditions.
+
+---
+
+## Motivation
+
+Standard INET provides TCP and UDP support but does not include QUIC functionality suitable for satellite environments.
+
+LEO satellite networks introduce:
+
+- Variable delay
+- Frequent handovers
+- Dynamic routing changes
+
+These conditions require transport protocols with better adaptability than traditional approaches.
+
+---
+
+## Key Modifications
+
+The following modifications were introduced in the INET framework:
+
+### 1. QUIC Transport Layer Integration
+
+- Added QUIC protocol support as a transport layer over UDP
+- Implemented QUIC client and server applications
+- Enabled connection-oriented communication over UDP
+
+---
+
+### 2. Connection Handling Improvements
+
+- Introduced basic connection management for QUIC sessions
+- Enabled handling of packet transmission and reception across multiple hops
+
+---
+
+### 3. Packet Processing Adjustment
+
+- Modified packet parsing to ensure compatibility with INET packet structures
+- Added safe handling for unexpected or empty packet chunks
+
+---
+
+### 4. Compatibility with Satellite Routing
+
+- Ensured QUIC operates correctly over dynamic routing paths
+- Supported forwarding across satellite nodes using IP routing
+
+---
+
+## Integration with Simulation
+
+The QUIC-enabled INET framework is used together with:
+
+- OMNeT++ simulation engine
+- FloRaSat satellite mobility model
+
+This allows:
+
+- Multi-hop communication via satellites
+- End-to-end transport evaluation
+- Testing under realistic delay and loss conditions
+
+---
+
+## Note
+
+This implementation represents a simulation-based extension of QUIC behavior and does not aim to replicate full production-level QUIC stacks.
+
+The focus is on evaluating transport behavior under satellite network conditions.
