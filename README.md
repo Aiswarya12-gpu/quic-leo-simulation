@@ -23,20 +23,20 @@ The objective is to study protocol behavior under:
 
 ---
 
-## Repository Contents
+## Repository Structure
 
-- inet_quic/  
+- `inet_quic/`  
   Contains selected modifications to support QUIC-like behavior.
 
-- simulation/  
+- `simulation/`  
   Network topology and experiment configuration.
 
-- notes/  
-  Implementation explanation and design decisions.
+- `notes/`  
+  Additional documentation including implementation details and setup instructions.
 
 ---
 
-## Key Contribution
+## Key Contributions
 
 - Extension of INET with QUIC-like transport behavior  
 - Basic handover-aware packet handling  
@@ -54,23 +54,44 @@ The objective is to study protocol behavior under:
 
 ---
 
-## How to Use
+## Requirements
 
-1. Install OMNeT++ and INET framework  
-2. Integrate the provided QUIC-related files  
-3. Load the simulation configuration  
-4. Run using `omnetpp.ini`
+- OMNeT++ 6.x  
+- INET Framework 4.5  
+- Ubuntu 22.04 (recommended)  
 
 ---
 
-## Note
+## Setup and Execution
+
+Detailed environment setup and execution steps are provided in:
+
+👉 `notes/run_instructions.md`
+
+This includes:
+
+- Installation of OMNeT++  
+- INET framework setup  
+- Project configuration  
+- Running the simulation  
+
+---
+
+## Notes
 
 This repository provides a simplified representation of the implementation.
 
-It does not include the full INET framework or a complete QUIC standard implementation.
+- It does not include the full INET framework  
+- QUIC is implemented as a simplified transport extension for research purposes  
 
 ---
 
 ## Extension
 
 Reinforcement learning-based congestion control is implemented separately as part of the overall thesis work.
+
+---
+
+## Academic Use
+
+This repository is part of an academic thesis project and is shared for research and reproducibility purposes.
