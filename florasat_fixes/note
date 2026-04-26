@@ -1,0 +1,28 @@
+### Problem
+The original FloRaSat implementation is incompatible with newer INET versions due to:
+- Missing interfaces (ScalarReception)
+- Changed include paths
+- Deprecated analog model APIs
+
+### Fixes Implemented
+
+#### 1. LoRaReceiver.h
+- Updated include path for SNIR handling
+
+#### 2. LoRaReception.h
+- Reimplemented as standalone class
+- Removed dependency on deprecated INET classes
+
+#### 3. LoRaAnalogModel.cc
+- Simplified analog signal model
+- Replaced outdated interfaces
+- Added SNIR-based signal evaluation
+
+### Outcome
+These fixes enable successful integration of FloRaSat with INET 4.x and OMNeT++ 6.x.
+
+
+Note:
+These implementations are simplified versions for compatibility and simulation purposes.
+They do not represent the full physical layer accuracy of LoRa communication.
+
