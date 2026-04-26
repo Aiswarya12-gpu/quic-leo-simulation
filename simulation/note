@@ -1,0 +1,174 @@
+#  Simulation Guide – QUIC over LEO (OMNeT++)
+
+This directory contains all simulation configuration files required to run the QUIC over LEO satellite network experiments.
+
+It defines:
+
+* Network topology (satellites + ground stations)
+* Application traffic (QUIC client/server)
+* Simulation parameters (delay, loss, handover)
+
+---
+
+#  Folder Structure
+
+```
+simulations/
+│
+├── omnetpp.ini          # Main simulation configuration
+│
+└── ned/
+    ├── SatelliteNetwork.ned   # Full network topology
+    ├── GroundStation.ned      # Ground node (client/server)
+    ├── SatelliteRouter.ned    # Satellite node (router)
+```
+
+---
+
+#  Network Overview
+
+The simulation models a **LEO satellite communication system**:
+
+*  satellites (ring topology)
+*  20 ground stations
+* Inter-satellite links (multi-hop routing)
+* End-to-end QUIC communication
+
+### Communication Flow
+
+```
+groundStation[0] → satellites → groundStation[19]
+```
+
+---
+
+#  Key Files Explained
+
+## 1. `SatelliteNetwork.ned`
+
+Defines the **entire network topology**:
+
+* Creates satellites and ground stations
+* Connects them using PPP links
+* Implements ring-based satellite routing
+
+---
+
+## 2. `GroundStation.ned`
+
+Represents user nodes:
+
+* Runs QUIC applications
+* Acts as client or server
+
+---
+
+## 3. `SatelliteRouter.ned`
+
+Represents satellites:
+
+* Acts as IP routers
+* Forwards packets between nodes
+
+---
+
+## 4. `omnetpp.ini`
+
+Controls the simulation behavior:
+
+### Example parameters:
+
+* Simulation time
+* Traffic generation
+* Delay model
+* Handover timing
+
+---
+
+#  How to Run the Simulation
+
+### Step 1: Open OMNeT++
+
+Import the project into OMNeT++ IDE.
+
+---
+
+### Step 2: Build Project
+
+Right click project → **Build**
+
+---
+
+### Step 3: Run Simulation
+
+Right click:
+
+```
+simulations/omnetpp.ini
+```
+
+→ Click **Run As → OMNeT++ Simulation**
+
+---
+
+# Simulation Parameters
+
+| Parameter         | Value      |
+| ----------------- | ---------- |
+| Satellites        | 10         |
+| Ground Stations   | 20         |
+| Packet Size       | 1024 bytes |
+| Interval          | 10–100 ms  |
+| RTT (LEO)         | 20–150 ms  |
+| Packet Loss       | 0–5%       |
+| Handover Interval | 300–600 s  |
+
+---
+
+#  LEO-Specific Behavior
+
+This simulation includes realistic satellite characteristics:
+
+* Dynamic propagation delay
+*  Multi-hop routing via satellites
+* Periodic handover events
+*  Variable RTT conditions
+
+---
+
+#  Important Notes
+
+* This is a **research simulation**, not a real network
+* QUIC is a **simplified implementation**
+* Some INET modules are modified (see `src/` folder)
+* FloRaSat is used for mobility and delay modeling
+
+---
+
+# Tips for Beginners
+
+* Always build the project before running
+* Check `.ini` file if simulation fails
+* Ensure module names match NED files
+* Use OMNeT++ log window for debugging
+
+---
+
+# Related Code
+
+* QUIC implementation → `src/quic/`
+* UDP modifications → `src/transport/`
+* Handover logic → `src/leo/`
+
+---
+
+# Purpose of This Simulation
+
+This setup is used to:
+
+* Evaluate QUIC performance in LEO networks
+* Study congestion control behavior
+* Analyze handover impact
+* Generate reproducible research results
+
+
