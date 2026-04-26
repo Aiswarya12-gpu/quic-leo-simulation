@@ -1,0 +1,11 @@
+### UdpSocket.cc Modification
+
+The UDP layer was extended to support LEO satellite propagation delays.
+
+#### Key Changes
+- Replaced direct send() with sendDelayed()
+- Integrated delay model based on satellite propagation
+- Delay range: 20ms – 150ms (based on LEO RTT)
+
+#### Purpose
+To simulate realistic satellite communication latency in QUIC transport evaluation.
