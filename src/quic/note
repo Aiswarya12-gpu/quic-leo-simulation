@@ -1,0 +1,18 @@
+### Motivation
+Traditional congestion control algorithms (e.g., Reno, CUBIC) misinterpret LEO-induced delay spikes as network congestion.
+
+### Solution
+We introduce a handover-aware congestion control mechanism:
+
+- Detects satellite handover events
+- Temporarily disables congestion reaction
+- Prevents unnecessary throughput degradation
+
+### Implementation
+- File: `QuicCongestionControl.cc`
+- Integrated with `QuicConnection.cc`
+
+### Behavior
+- Packet loss during handover is ignored
+- Congestion window remains stable
+- Improved throughput stability
