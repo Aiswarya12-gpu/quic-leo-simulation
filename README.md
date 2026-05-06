@@ -1,338 +1,172 @@
-# QUIC over LEO Satellite Networks (OMNeT++ Simulation Framework)
+QUIC over LEO Satellite Networks with RL-Based Adaptive Pacing
 
-This repository presents a **simulation framework for evaluating the QUIC transport protocol in Low Earth Orbit (LEO) satellite networks** using OMNeT++, INET, and FloRaSat.
+This repository presents a simulation framework for evaluating QUIC transport performance in Low Earth Orbit (LEO) satellite networks, extended with a reinforcement learning (RL)-based adaptive pacing control mechanism.
 
-The work is developed as part of a **Master’s thesis** focused on analyzing transport-layer performance under **dynamic satellite conditions**, including mobility, handovers, and variable propagation delays.
+The system is implemented using OMNeT++, INET, and FloRaSat, and is designed to study transport-layer behavior under dynamic satellite conditions, including mobility, handovers, and time-varying propagation delays.
 
----
+🎯 Key Idea
 
-#  Project Highlights
+Traditional congestion control mechanisms assume that:
 
-✔ QUIC over dynamic LEO satellite networks
-✔ Integration of INET + FloRaSat
-✔ Handover-aware transport layer
-✔ LEO-aware congestion control (research extension)
-✔ Multi-hop satellite routing
-✔ Validation using real-world Starlink delay data
+Packet loss → congestion
+RTT increase → queue buildup
 
----
+👉 This assumption breaks in LEO networks, where:
 
-# Motivation
+RTT variation is caused by satellite movement
+Packet loss is often due to handover events, not congestion
+✅ Proposed Solution
 
-Traditional transport protocols struggle in LEO environments due to:
+This work introduces a learning-based pacing refinement layer on top of QUIC:
 
-* High satellite mobility (~27,000 km/h)
-* Frequent handovers (every 5–10 minutes)
-* Variable propagation delays (20–150 ms)
-* Bursty packet loss
+Final Pacing Rate = BBR Rate × (1 + RL Action)
+BBR provides baseline bandwidth estimation
+RL agent adjusts pacing rate dynamically
+No modification to congestion window (cwnd)
 
-QUIC offers modern features such as:
+👉 This creates a hybrid congestion control architecture
 
-* 0-RTT connection establishment
-* Multiplexed streams
-* Improved loss recovery
-
-However, QUIC is designed for terrestrial networks.
-
-👉 This project adapts QUIC for **satellite-based communication systems**.
-
----
-
-#  System Architecture
-
-The system follows a layered architecture:
-
-```text id="arch01"
+🧠 System Architecture
 Application (Client/Server)
         ↓
 QUIC Transport Layer (Modified)
         ↓
-UDP Layer (LEO-aware delay)
+[BBR Congestion Control]
+        ↓
+[RL-Based Pacing Adjustment]
+        ↓
+UDP Layer
         ↓
 IP Layer
         ↓
-RadioMedium + Inter-Satellite Links (FloRaSat)
-```
+LEO Satellite Network (FloRaSat)
+🔁 RL Control Loop
 
----
+At runtime (every 100 ms):
 
-# 📁 Repository Structure
+Network State (RTT, Throughput, Loss)
+            ↓
+        RL Agent
+            ↓
+   Pacing Adjustment Action
+            ↓
+ Updated QUIC Pacing Rate
+⚙️ Implementation Details
+📍 Modified Files
+1. QUIC Congestion Control
+src/quic/QuicCongestionControl.cc
 
-```text id="repo01"
-quic-leo-simulation/
-│
-├── src/                      # Core implementation
-│   ├── quic/                # QUIC transport layer
-│   ├── transport/           # UDP modifications
-│   ├── leo/                 # Handover handling logic
-│
-├── simulations/             # Network setup
-│   ├── omnetpp.ini
-│   └── ned/
-│       ├── SatelliteNetwork.ned
-│       ├── GroundStation.ned
-│       ├── SatelliteRouter.ned
-│
-├── florasat_fixes/          # Compatibility fixes
-│
-├── results/                 # Simulation output
-│   ├── latency/
-│   ├── throughput/
-│
-├── docs/                    # Diagrams
-│   └── diagrams/
-│
-└── notes/                   # Setup guide
-```
+Added:
 
----
+State extraction (RTT, throughput, loss)
+RL-based pacing refinement
+Integration with existing QUIC pacing
+2. QUIC Connection Timer
+src/quic/QuicConnection.cc
+Periodic control loop (100 ms)
+Triggers pacing updates
+🔧 Core Logic
+double baseRate = getPacingRate();   // From BBR
+double action = rlAgent.predict(rtt, throughput, loss);
 
-#  Key Contributions
+double updatedRate = baseRate * (1.0 + action);
+pacingRate = updatedRate;
+📌 Important Design Note
 
-## 1. QUIC Integration with LEO Networks
+✔ RL does NOT replace BBR
+✔ RL only refines pacing behavior
+✔ Ensures stability and compatibility
 
-* Extended INET QUIC for satellite communication
-* Enabled end-to-end QUIC over multi-hop satellite paths
+🛰️ Simulation Setup
+Topology
+10 LEO satellites (550 km altitude)
+20 ground stations
+Multi-hop satellite routing
+Network Characteristics
+Parameter	Value
+RTT	60–80 ms
+Packet Loss	~0.3–0.4%
+Link Capacity	300 Mbps
+Handover Interval	~10–20 s
+Mobility Model
+SGP4 (TLE-based satellite movement)
+Elevation-based handover
+Dynamic routing updates
+📊 Key Results
 
----
+Compared to QUIC-BBR:
 
-## 2. UDP Layer Modification
+Metric	Improvement
+RTT	↓ Reduced
+Packet Loss	↓ Reduced
+Recovery Time	↓ Faster
+Stability	↑ Improved
+🔍 Key Insight
 
-* Modified `UdpSocket.cc`
-* Introduced realistic propagation delay
+👉 RL improves response to transient events, not raw throughput
 
-```text id="udp01"
-send() → sendDelayed()
-```
+Avoids overreaction during handovers
+Maintains smoother transmission
+Reduces performance variability
+📈 Dataset-Based Calibration
 
-* Delay range: **20–150 ms**
+Simulation is calibrated using real-world datasets:
 
----
-
-## 3. Handover-Aware QUIC
-
-* Implemented handover detection
-* Reset RTT during satellite switch
-* Prevent connection instability
-
----
-
-## 4. LEO-Aware Congestion Control (Research Contribution)
-
-Standard congestion control misinterprets satellite delay as congestion.
-
-### Solution:
-
-* Ignore packet loss during handover
-* Maintain stable congestion window
-* Improve throughput stability
-
----
-
-## 5. FloRaSat Compatibility Fixes
-
-Resolved integration issues:
-
-* Fixed SNIR include paths
-* Replaced deprecated interfaces
-* Simplified analog model
-
----
-
-# 🛰️ Simulation Setup
-
-## Topology
-
-* 10 satellites (ring topology)
-* 20 ground stations
-* Multi-hop inter-satellite routing
-
-## Communication Flow
-
-```text id="flow01"
-groundStation[0] → satellites → groundStation[19]
-```
-
----
-
-## Simulation Parameters
-
-| Parameter         | Value      |
-| ----------------- | ---------- |
-| Packet Size       | 1024 bytes |
-| Interval          | 10–100 ms  |
-| RTT               | 20–150 ms  |
-| Packet Loss       | 0–5%       |
-| Handover Interval | 300–600 s  |
-
----
-
-#  Results Summary
-
-## Latency
-
-* Normal RTT: 25–100 ms
-* Handover spikes: up to 250 ms
-
-## Throughput
-
-* Stable under low loss
-* Drops during handover (~10–15%)
-* Recovers after stabilization
-
----
-
-# External Dataset and Validation
-
-## Dataset Used
-
-* **Title:** A Detailed Characterization of Starlink One-way Delay
-* **Published at:** ACM LEONET 2025
-* **Dataset:** https://zenodo.org/records/16275284
-
----
-
-## 📦 Dataset Content
-
-* One-way delay (OWD) measurements
-* Real Starlink network behavior
-* Time-based latency variation
-
----
-
-## Usage in This Project
-
-The dataset is used for:
-
-### ✔ Parameter Selection
-
-* Delay range (20–150 ms)
-* Variability modeling
-
-### ✔ Validation
-
-* Compare simulation latency trends
-* Verify delay spikes and recovery
-
-### ✔ Model Design
-
-* Justifies dynamic delay modeling
-* Supports handover-aware logic
-
----
-
-## Supporting Tool
-
-* WetLinks Repository: https://github.com/sys-uos/WetLinks
+Starlink Delay Dataset
+https://zenodo.org/records/16275284
+WetLinks Dataset
+https://github.com/sys-uos/WetLinks
 
 Used for:
 
-* Understanding real satellite network behavior
-* Benchmarking simulation performance
-
----
-
-##  Summary
-
-```text id="summary01"
-Simulation (OMNeT++ + INET + FloRaSat)
-        +
-Real-world dataset (Starlink delay)
-```
-
-Enables realistic and validated LEO network analysis
-
----
-
-#  How to Run
-
-## Requirements
-
-* OMNeT++ 6.x
-* INET 4.5
-* Ubuntu 22.04
-
----
-
-## Steps
-
+RTT modeling
+Packet loss characteristics
+Realistic variability
+▶️ How to Run
+Requirements
+OMNeT++ 6.x
+INET 4.5
+Ubuntu 22.04
+Steps
 1. Import project into OMNeT++
 2. Build project
 3. Run:
-
-```text id="run01"
-simulations/omnetpp.ini
-```
-
-→ Run As → OMNeT++ Simulation
-
----
-
-# 📁 Output
-
-Results are stored in:
-
-```text id="out01"
+   simulations/omnetpp.ini
+📁 Output
 results/
-```
+.vec → time-series data
+.sca → summary metrics
+⚠️ Limitations
+Simplified QUIC implementation (no TLS)
+RL model is lightweight (no large-scale training)
+Simulation-based evaluation (no real deployment)
+🔮 Future Work
+Multi-agent RL for satellite networks
+Real-time model inference integration
+Cross-layer optimization
+6G NTN integration
+📚 Academic Context
 
-* `.vec` → time-series data
-* `.sca` → summary metrics
+This work is part of a Master’s thesis:
 
----
+“Evaluation of QUIC Transport Protocol over LEO Satellite Constellations with Adaptive Pacing Control”
 
-#  Limitations
+⚡ Key Contribution (What makes this work novel)
 
-* Simplified QUIC implementation (no TLS)
-* No real-world deployment validation
-* Congestion control not fully optimized
-* FloRaSat originally designed for IoT
+✔ First integration of RL-based pacing control in QUIC for LEO networks
+✔ Works on top of BBR, not replacing it
+✔ Handles mobility-induced dynamics explicitly
+✔ Improves stability and recovery, not just throughput
 
----
+📜 License
 
-# Future Work
+For research and educational use only.
 
-* Implement advanced congestion control (BBR, RL-based)
-* Improve handover prediction
-* Real satellite trace integration
-* 5G/6G NTN integration
+🙏 Acknowledgements
+OMNeT++ Community
+INET Framework
+FloRaSat
+Starlink dataset contributors
+🔚 Final Note
 
----
-
-# Use Cases
-
-* Transport protocol research
-* Satellite network simulation
-* Congestion control experiments
-* Academic studies
-
----
-
-#  Academic Context
-
-This repository is part of the Master’s thesis:
-
-**“Evaluation of Transport Layer Protocol QUIC over LEO Constellations”**
-
----
-
-# Disclaimer
-
-This project is intended for **research and educational purposes only**.
-
-It is **not a production-ready QUIC implementation**.
-
----
-
-#  Acknowledgements
-
-* OMNeT++ Community
-* INET Framework
-* FloRaSat Project
-* Starlink delay dataset contributors
-
----
-
-#  Final Note
-
-This repository demonstrates how modern transport protocols can be adapted for **next-generation satellite internet systems**, supporting future **global broadband and 6G networks**.
+This repository demonstrates how learning-based control can enhance transport protocols for next-generation satellite networks, enabling more reliable and adaptive communication in highly dynamic environments.
