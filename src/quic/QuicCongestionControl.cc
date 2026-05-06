@@ -1,36 +1,23 @@
-#include "QuicCongestionControl.h"
-#include <iostream>
-
-void QuicCongestionControl::onPacketAcked()
+void QuicCongestionControl::updatePacingRate()
 {
-    if (cwnd < ssthresh) {
-        // Slow start
-        cwnd += 1;
-    } else {
-        // Congestion avoidance
-        cwnd += 1 / cwnd;
-    }
+    double rtt = getRTT();
+    double throughput = getThroughput();
+    double loss = getLoss();
 
-    std::cout << "ACK received → CWND: " << cwnd << std::endl;
-}
+    double action = rlAgent.predict(rtt, throughput, loss);
 
-void QuicCongestionControl::onPacketLost()
-{
-    if (handoverActive) {
-        // 🚀 KEY IDEA: IGNORE LOSS DURING HANDOVER
-        std::cout << "Loss during handover → IGNORE\n";
-        return;
-    }
+    double baseRate = getPacingRate();
 
-    ssthresh = cwnd / 2;
-    cwnd = 1;
+    double updatedRate = baseRate * (1.0 + action);
 
-    std::cout << "Loss detected → CWND reduced to " << cwnd << std::endl;
-}
+    pacingRate = updatedRate;
 
-void QuicCongestionControl::onHandover()
-{
-    handoverActive = true;
-
-    std::cout << "Handover mode ON\n";
+    EV_INFO << "[RL-PACING]"
+            << " RTT=" << rtt
+            << " Throughput=" << throughput
+            << " Loss=" << loss
+            << " BaseRate=" << baseRate
+            << " Action=" << action
+            << " FinalRate=" << pacingRate
+            << endl;
 }
